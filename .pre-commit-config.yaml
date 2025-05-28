@@ -1,0 +1,78 @@
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+    -   id: check-yaml
+    -   id: end-of-file-fixer
+    -   id: trailing-whitespace
+    -   id: check-merge-conflict
+    -   id: check-added-large-files
+        args: ['--maxkb=1000']
+    -   id: check-case-conflict
+    -   id: check-json
+    -   id: check-toml
+    -   id: check-xml
+    -   id: debug-statements
+    -   id: detect-private-key
+    -   id: mixed-line-ending
+        args: ['--fix=lf']
+    -   id: pretty-format-json
+        args: ['--autofix']
+
+# Python linting and formatting
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.11.0
+    hooks:
+    # Run the linter.
+    -   id: ruff
+        args: [--fix]
+        files: '\.py$'
+    # Run the formatter.
+    -   id: ruff-format
+        files: '\.py$'
+
+# Python type checking
+-   repo: https://github.com/pre-commit/mirrors-mypy
+    rev: 'v1.15.0'
+    hooks:
+    -   id: mypy
+        files: '\.py$'
+        additional_dependencies:
+          - django-stubs
+          - types-requests
+          - types-pytz
+          - djangorestframework-stubs
+          - types-redis
+          - types-markdown
+
+# Security scanning
+-   repo: https://github.com/PyCQA/bandit
+    rev: '1.7.10'
+    hooks:
+    -   id: bandit
+        args: ['-r', '-f', 'json']
+        files: '\.py$'
+        exclude: '.*(tests|test_.*|.*_test)\.py$'
+
+# Secrets detection
+-   repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+    -   id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: '.*\.lock$|^\.secrets\.baseline$|.*\.env\.example$'
+
+# Commit message formatting
+-   repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v3.6.0
+    hooks:
+    -   id: conventional-pre-commit
+        stages: [commit-msg]
+        args: [optional-scope]
+
+# Markdown linting
+-   repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.43.0
+    hooks:
+    -   id: markdownlint
+        args: ['--fix']
