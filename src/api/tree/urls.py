@@ -2,5 +2,5 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path("", views.TreeAPIView.as_view(), name="index"),
+    path("", views.TreeAPIView.as_view(), name="tree-api"),
 ]

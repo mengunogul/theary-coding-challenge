@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 from typing import Optional, List
 
 
@@ -9,12 +9,14 @@ class TreeNodeCreateRequest(BaseModel):
     parentId: Optional[int] = Field(None, description="ID of the parent node")
 
     @field_validator("label")
+    @classmethod
     def validate_label(cls, v):
         if not v or not v.strip():
             raise ValueError("Label cannot be empty or whitespace only")
         return v.strip()
 
     @field_validator("parentId")
+    @classmethod
     def validate_parent_id(cls, v):
         if v is not None and v <= 0:
             raise ValueError("Parent ID must be a positive integer")
@@ -22,22 +24,34 @@ class TreeNodeCreateRequest(BaseModel):
 
 
 class TreeNodeResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int = Field(..., description="Unique identifier of the tree node")
     label: str = Field(..., description="Label of the tree node")
 
-    class Config:
-        from_attributes = True
+    @field_validator("id")
+    @classmethod
+    def validate_id(cls, v):
+        if v <= 0:
+            raise ValueError("ID must be a positive integer")
+        return v
 
 
 class TreeNodeWithChildren(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int = Field(..., description="Unique identifier of the tree node")
     label: str = Field(..., description="Label of the tree node")
     children: List["TreeNodeWithChildren"] = Field(
         default=[], description="List of child nodes"
     )
 
-    class Config:
-        from_attributes = True
+    @field_validator("id")
+    @classmethod
+    def validate_id(cls, v):
+        if v <= 0:
+            raise ValueError("ID must be a positive integer")
+        return v
 
 
 # Update forward reference

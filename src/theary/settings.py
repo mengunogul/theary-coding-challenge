@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "drf_spectacular",
     "adrf",
-    "api",  # Add the api app
+    "api.tree",  # Add the api app
 ]
 
 REST_FRAMEWORK = {
