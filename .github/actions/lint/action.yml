@@ -1,0 +1,43 @@
+name: 'Code Linting'
+description: 'Runs code linting and type checking'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Run Ruff Linter
+      uses: astral-sh/ruff-action@v3
+      with:
+        src: src
+        args: check
+
+    - name: Run Ruff Formatter
+      uses: astral-sh/ruff-action@v3
+      with:
+        src: src
+        args: format --check
+
+    - name: Install linting dependencies
+      shell: bash
+      run: |
+        cd src
+        uv add mypy django-stubs types-requests types-pytz djangorestframework-stubs types-redis types-markdown bandit
+
+    - name: Run MyPy
+      shell: bash
+      run: |
+        cd src
+        uv run mypy . --ignore-missing-imports
+
+    - name: Run Bandit
+      shell: bash
+      run: |
+        cd src
+        uv run bandit -r -f json . --exclude "**/tests/**,**/test_*.py,**/*_test.py"
+
+    - name: Install markdownlint
+      shell: bash
+      run: npm install -g markdownlint-cli
+
+    - name: Run markdownlint
+      shell: bash
+      run: markdownlint . --fix || true

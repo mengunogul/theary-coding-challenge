@@ -1,0 +1,49 @@
+name: 'Security Checks'
+description: 'Runs security scanning and vulnerability detection'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install security tools
+      shell: bash
+      run: |
+        cd src
+        uv add bandit
+
+    - name: Run Bandit security scan
+      shell: bash
+      run: |
+        cd src
+        uv run bandit -r -f json . --exclude "**/tests/**,**/test_*.py,**/*_test.py"
+
+    - name: Check for debug statements
+      shell: bash
+      run: |
+        if grep -r "import pdb\|pdb.set_trace()\|breakpoint()" --include="*.py" src/; then
+          echo "Debug statements found!"
+          exit 1
+        fi
+
+    - name: Check for hardcoded secrets
+      shell: bash
+      run: |
+        if grep -r "password\s*=\s*['\"][^'\"]*['\"]" --include="*.py" src/ | grep -v "test"; then
+          echo "Potential hardcoded passwords found!"
+          exit 1
+        fi
+
+    - name: Check for API keys patterns
+      shell: bash
+      run: |
+        if grep -r "api_key\s*=\s*['\"][^'\"]*['\"]" --include="*.py" src/ | grep -v "test"; then
+          echo "Potential hardcoded API keys found!"
+          exit 1
+        fi
+
+    - name: Check for SQL injection patterns
+      shell: bash
+      run: |
+        if grep -r "SELECT.*%s\|INSERT.*%s\|UPDATE.*%s\|DELETE.*%s" --include="*.py" src/ | grep -v "test"; then
+          echo "Potential SQL injection vulnerabilities found!"
+          exit 1
+        fi

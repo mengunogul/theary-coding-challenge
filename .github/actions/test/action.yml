@@ -1,0 +1,32 @@
+name: 'Run Tests'
+description: 'Runs Django tests for the application'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Run tests
+      shell: bash
+      env:
+        ENVIRONMENT: test
+        DB_HOST: ${{ vars.DB_HOST }}
+        DB_PORT: ${{ vars.DB_PORT }}
+        DB_NAME: ${{ vars.DB_NAME }}
+        DB_USER: ${{ vars.DB_USER }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      run: |
+        cd src
+        uv run pytest --junitxml=test-results.xml --cov=. --cov-report=xml:coverage.xml
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: pytest-results
+        path: src/test-results.xml
+
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: src/coverage.xml
