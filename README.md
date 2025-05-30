@@ -106,27 +106,9 @@ This will:
 - Run migrations automatically
 - Start the API server on http://localhost:8000
 
-### Local Development with SQLite
-
-For quick development and testing, you can use in memory SQLite instead of depending on external PostgreSQL service:
-
-```bash
-# Set environment to use SQLite
-export ENVIRONMENT=dev
-
-# Install dependencies
-uv sync
-
-# Run migrations
-uv run python src/manage.py migrate
-
-# Start development server
-uv run python src/manage.py runserver
-```
-
 ### PostgreSQL Setup
 
-For production-like testing with PostgreSQL:
+For running locally with PostgreSQL:
 
 ```bash
 # Start PostgreSQL container
@@ -143,13 +125,6 @@ uv run python src/manage.py runserver
 ```
 
 ## Testing
-
-### Quick Testing with SQLite
-
-```bash
-export ENVIRONMENT=dev
-uv run pytest
-```
 
 ### Full Testing with PostgreSQL
 
