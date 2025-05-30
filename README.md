@@ -142,7 +142,7 @@ uv run pytest
 
 ```bash
 # Start PostgreSQL
-docker compose -d db
+docker compose up -d db
 
 # Run tests
 export ENVIRONMENT=test
