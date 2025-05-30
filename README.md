@@ -72,6 +72,20 @@ Create a new tree node with optional parent relationship.
 
 ## Development Setup
 
+### Quick Start
+
+To run the service immediately with PostgreSQL:
+
+```bash
+docker compose up --build
+```
+
+This will:
+- Build the Django application
+- Start PostgreSQL database
+- Run migrations automatically
+- Start the API server on http://localhost:8000
+
 ### Prerequisites
 
 - Python 3.13+
