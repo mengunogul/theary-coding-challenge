@@ -86,8 +86,8 @@ Create a `.env` file in the project root:
 SECRET_KEY=your-secret-key-here
 DEBUG=True
 ALLOWED_HOSTS=localhost,127.0.0.1
-DB_NAME=theary_db
-DB_USER=postgres
+DB_NAME=theary
+DB_USER=theary
 DB_PASSWORD=password
 DB_HOST=localhost
 DB_PORT=5432
