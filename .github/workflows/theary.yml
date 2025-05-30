@@ -27,14 +27,14 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    environment: test
     needs: [security, lint]
-
     services:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_DB: ${{ secrets.DB_NAME }}
-          POSTGRES_USER: ${{ secrets.DB_USER }}
+          POSTGRES_DB: ${{ vars.DB_NAME }}
+          POSTGRES_USER: ${{ vars.DB_USER }}
           POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
         options: >-
           --health-cmd pg_isready
@@ -53,9 +53,10 @@ jobs:
 
     - name: Run Tests
       uses: ./.github/actions/test
-
-    - name: Publish Test Results
-      uses: EnricoMi/publish-unit-test-result-action@v2
-      if: always()
       with:
-        files: src/test-results.xml
+        db_host: localhost
+        db_port: 5432
+        db_name: ${{ vars.DB_NAME }}
+        db_user: ${{ vars.DB_USER }}
+        db_password: ${{ secrets.DB_PASSWORD }}
+        secret_key: ${{ secrets.SECRET_KEY }}
