@@ -16,7 +16,7 @@ RUN uv sync --frozen
 COPY . .
 
 # Copy and set permissions for entrypoint script
-COPY scripts/entrypoint.sh /app/entrypoint.sh
+COPY src/scripts/entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
 # Set PYTHONPATH to include the src directory
@@ -25,6 +25,9 @@ ENV PYTHONPATH=/app/src
 # Configure uv to use the virtual environment
 ENV VIRTUAL_ENV=/app/.venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+# Set working directory to where manage.py is located
+WORKDIR /app/src
 
 # Create a non-root user for security
 RUN adduser -D -s /bin/sh django && \
