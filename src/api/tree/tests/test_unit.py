@@ -126,7 +126,7 @@ class TestTreeNodeResponse:
         """Test that model dump includes all expected fields"""
         response = TreeNodeResponse(id=1, label="Test")
         dumped = response.model_dump()
-        assert dumped == {"id": 1, "label": "Test"}
+        assert dumped == {"id": 1, "label": "Test", "parentId": None}
 
     def test_response_from_mock_model_instance(self):
         """Test creating response from mock model instance"""
