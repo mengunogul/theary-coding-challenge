@@ -94,6 +94,7 @@ DB_PORT=5432
 ```
 ### Quick Start
 
+The application fetches configuration from environment variables, so ensure environment variables are properly set up before starting.
 To run the service immediately with PostgreSQL:
 
 ```bash
