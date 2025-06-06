@@ -8,6 +8,9 @@ Models:
     TreeNode: Represents a node in a hierarchical tree structure
 """
 
+from collections import deque
+from typing import Self
+
 from django.db.models import (
     Model,
     AutoField,
@@ -86,6 +89,52 @@ class TreeNode(Model):
                 child.to_dict_with_children() for child in self.children.all()
             ],
         }
+
+    def clone_subtree(self, parent: Self) -> "TreeNode":
+        """
+        Clone this node and all its descendants using iterative breadth-first traversal.
+
+        This method uses a bfs approach to clone the entire subtree,
+        which prevents infinite recursion and stack overflow issues while also
+        detecting circular references in the tree structure.
+
+        Args:
+            parent (TreeNode): Parent node to attach the cloned subtree to
+
+        Returns:
+            TreeNode: The newly created root node of the cloned subtree
+
+        Raises:
+            ValueError: If circular reference is detected in the tree structure
+        """
+        # Create the cloned root node
+        cloned_root = TreeNode.objects.create(label=self.label, parent=parent)
+
+        # Queue stores tuples of (original_node, cloned_parent)
+        queue: deque[tuple[TreeNode, TreeNode]] = deque([(self, cloned_root)])
+        visited = {self.id, cloned_root.id}  # Track visited nodes to detect cycles
+
+        while queue:
+            original_node, cloned_parent = queue.popleft()
+
+            # Process all children of the current original node
+            for child in original_node.children.all():
+                # Detect circular reference
+                if child.id in visited:
+                    # it skips the circulare references
+                    continue
+
+                # Clone the child
+                cloned_child = TreeNode.objects.create(
+                    label=child.label, parent=cloned_parent
+                )
+
+                # Add child to queue for further processing and mark as visited
+                queue.append((child, cloned_child))
+                visited.add(child.id)
+                visited.add(cloned_child.id)
+
+        return cloned_root
 
     def __str__(self) -> str:
         """
