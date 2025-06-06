@@ -175,6 +175,13 @@ class TreeNodeWithChildren(BaseModel):
 TreeNodeWithChildren.model_rebuild()
 
 
+class TreeNodeCloneRequest(BaseModel):
+    parent_id: int = Field(..., description="Unique identifier of parent node")
+    target_id: int = Field(
+        ..., description="Unique identifier of targeted node to clone"
+    )
+
+
 class ErrorResponse(BaseModel):
     """
     Standardized error response model.

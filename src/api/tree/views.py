@@ -20,10 +20,12 @@ from .serializers import (
     TreeNodeCreateRequest,
     TreeNodeResponse,
     TreeNodeWithChildren,
+    TreeNodeCloneRequest,
     ErrorResponse,
 )
 from pydantic import ValidationError
 import structlog
+
 
 logger = structlog.get_logger(__name__)
 
@@ -219,3 +221,123 @@ class TreeAPIView(APIView):
         )
 
         return Response(response_data.model_dump(), status=status.HTTP_201_CREATED)
+
+
+"""input:{
+
+parent_id = int
+target_id = int
+
+}"""
+
+"resp: 201"
+
+
+class TreeCloneAPIView(APIView):
+    @extend_schema(
+        methods=["post"],
+        request=TreeNodeCloneRequest,
+        responses={
+            201: TreeNodeResponse,
+            400: ErrorResponse,
+            404: ErrorResponse,
+            500: ErrorResponse,
+        },
+        description="Clone a new tree node with optional parent relationship",
+        summary="Clone tree node",
+    )
+    async def post(self, request):
+        """
+        Clone a tree node and all its descendants under a new parent.
+
+        Validates input data and clones the target node along with all its descendants,
+        creating a new subtree under the specified parent node.
+
+        Args:
+            request: HTTP request object containing clone data
+
+        Request Body:
+            {
+                "parent_id": 123,    # Required: ID of new parent node
+                "target_id": 456     # Required: ID of node to clone
+            }
+
+        Returns:
+            Response: HTTP 201 status on successful clone
+
+        Raises:
+            ValidationError: If input data is invalid
+            ValueError: If parent or target node doesn't exist
+        """
+        logger.info("Cloning tree node", request_data=request.data)
+
+        try:
+            # Validate request data using Pydantic model
+            validated_data = TreeNodeCloneRequest.model_validate(request.data)
+            logger.debug(
+                "Clone request data validated successfully",
+                parent_id=validated_data.parent_id,
+                target_id=validated_data.target_id,
+            )
+        except ValidationError as e:
+            logger.warning("Validation failed", error=str(e), request_data=request.data)
+            error_response = ErrorResponse(error="Validation failed", details=str(e))
+            return Response(
+                error_response.model_dump(), status=status.HTTP_400_BAD_REQUEST
+            )
+
+        @sync_to_async
+        def clone_tree_node():
+            """
+            Database operation wrapper for cloning tree nodes.
+
+            Uses atomic transactions to ensure data consistency.
+            Validates parent and target node existence before cloning.
+
+            Returns:
+                TreeNode: The newly cloned tree node instance
+
+            Raises:
+                ValueError: If parent or target node doesn't exist
+            """
+            with transaction.atomic():
+                # Validate parent node existence
+                try:
+                    parent = TreeNode.objects.get(id=validated_data.parent_id)
+                    logger.debug(
+                        "Parent node found", parent_id=validated_data.parent_id
+                    )
+                except TreeNode.DoesNotExist:
+                    raise ValueError("Parent node does not exist")
+
+                # Validate target node existence
+                try:
+                    target = TreeNode.objects.get(id=validated_data.target_id)
+                    logger.debug(
+                        "Target node found", target_id=validated_data.target_id
+                    )
+                except TreeNode.DoesNotExist:
+                    raise ValueError("Target node does not exist")
+
+                # Clone the target node and its descendants
+                cloned_node = target.clone_subtree(parent=parent)
+
+                logger.info(
+                    "Tree node cloned successfully",
+                    cloned_node_id=cloned_node.id,
+                    original_node_id=target.id,
+                    new_parent_id=parent.id,
+                )
+
+                return cloned_node
+
+        try:
+            await clone_tree_node()
+        except ValueError as e:
+            logger.warning("Node cloning failed", error=str(e))
+            error_response = ErrorResponse(error=str(e))
+            return Response(
+                error_response.model_dump(), status=status.HTTP_400_BAD_REQUEST
+            )
+
+        return Response(status=status.HTTP_201_CREATED)
